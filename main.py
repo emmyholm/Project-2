@@ -60,6 +60,7 @@ def PickUpAndPutDown():
    lower_arm_speed = 100
 
    ResetClawAngle()
+   ResetArmAngle()
 
    # Open claw and insert item
    claw_motor.run_target(open_claw_speed, 90 ,then=Stop.HOLD)
@@ -85,7 +86,6 @@ def PickUpAndReadColor():
    ResetArmAngle()
 
    # Lower arm and open claw to insert item
-   arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=100)
    claw_motor.run_target(50, 90 ,then=Stop.HOLD)
    wait(5000)
    
