@@ -45,10 +45,12 @@ def ResetClawAngle():
 
 def ResetArmAngle():
    raise_arm_speed = -100
+   lower_arm_speed = 100
 
    # Set highest position as 0 degrees
    arm_motor.run_until_stalled(raise_arm_speed, then=Stop.HOLD, duty_limit=50)
    arm_motor.reset_angle(0)
+   arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=50)
 
 # US01 and US02
 def PickUpAndPutDown():
