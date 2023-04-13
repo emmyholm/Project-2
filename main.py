@@ -22,6 +22,7 @@ close_claw_speed = -100
 open_claw_speed = 50
 raise_arm_speed = -100
 lower_arm_speed = 100
+turning_speed = 100
 
 ev3.speaker.beep()
 
@@ -36,7 +37,6 @@ def ResetArmAngle():
    arm_motor.reset_angle(0)
    arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=50)
 
-# US01 and US02
 def PickUpAndPutDown():
    ResetClawAngle()
    ResetArmAngle()
@@ -54,7 +54,32 @@ def PickUpAndPutDown():
    claw_motor.run_target(open_claw_speed, 90 ,then=Stop.HOLD)
    arm_motor.run_until_stalled(raise_arm_speed, then=Stop.HOLD, duty_limit=50)
 
-# US 04
+def IsObjectInLocation(angle):
+   ResetClawAngle()
+   ResetArmAngle()
+   
+   # Reset turning motor
+   turning_motor.reset_angle(0)
+
+   # Raise arm and open claw
+   arm_motor.run_until_stalled(raise_arm_speed, then=Stop.HOLD, duty_limit=50)
+   claw_motor.run_target(open_claw_speed, 90 ,then=Stop.HOLD)
+   
+   # Turn to given angle
+   turning_motor.run_target(turning_speed, angle, then=Stop.STOP)
+
+   # Try to pick up item
+   arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=50)
+   wait(5000)
+   claw_motor.run_until_stalled(close_claw_speed, then=Stop.HOLD, duty_limit=100)
+
+   claw_angle = claw_motor.angle()
+
+   if claw_angle > 0:
+      print("There is an object in the location")
+   else:
+      print("No object in location")
+
 def PickUpAndReadColor():
    ResetClawAngle()
    ResetArmAngle()
@@ -71,7 +96,12 @@ def PickUpAndReadColor():
    arm_motor.run_target(50, 425, then=Stop.HOLD)
    wait(5000)
    print(color_sensor.color())
-   
-#PickUpAndPutDown()
-#PickUpAndReadColor()
 
+#US01, US02
+#PickUpAndPutDown()
+
+#US03
+#ObjectInLocation(0)
+
+#US04
+#PickUpAndReadColor()
