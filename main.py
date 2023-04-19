@@ -37,27 +37,25 @@ third_drop_off = second_drop_off - 130
 
 ev3.speaker.beep()
 
-def ResetClawAngle():
-   # Set closed claw angle to 0 when closed
-   claw_motor.run_until_stalled(close_claw_speed, then=Stop.HOLD, duty_limit=50)
-   claw_motor.reset_angle(0)
-
-def ResetArmAngle():
-   # Set highest position as 0 degrees
+# Set default angles
+def ResetRobot():
+   # Reset arm angle
    arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=50)
    arm_motor.reset_angle(0)
+   # Set arm height to color reading height
+   arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
 
-def ResetTurningAngle():
+   # Reset claw angle and set to open claw
+   claw_motor.run_until_stalled(close_claw_speed, then=Stop.HOLD, duty_limit=50)
+   claw_motor.reset_angle(0)
+   # Set claw to open
+   claw_motor.run_target(open_claw_speed, 90, then=Stop.HOLD)
+   
+   # Reset turning angle
    turning_motor.run_until_stalled(clockwise_turning_speed, then=Stop.HOLD, duty_limit=50)
    turning_motor.reset_angle(0)
-
-def ResetRobot():
-   ResetClawAngle()
-   ResetArmAngle()
-   ResetTurningAngle()
+   # Set turning angle to pick up
    turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
-   arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
-   claw_motor.run_target(open_claw_speed, 90, then=Stop.HOLD)
 
 def PickUpItem():
    arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=20)
@@ -69,6 +67,7 @@ def DropItem():
    claw_motor.run_target(open_claw_speed, 90, then=Stop.HOLD)
    arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
 
+# Test for configuring drop off locations
 def TestDropOff():
    ResetRobot()
 
@@ -79,8 +78,26 @@ def TestDropOff():
    turning_motor.run_target(-200, third_drop_off, then=Stop.HOLD)
    PickUpItem()
 
+def DropItemAtLocation(drop_off_zone):
+   ResetRobot()
+
+   ev3.speaker.say('I will pick up the item')
+
+   PickUpItem()
+
+   claw_angle = claw_motor.angle()
+   
+   if claw_angle > holding_object_claw_angle:
+      ev3.speaker.say('Turning and dropping in given location')
+      turning_motor.run_target(-200, drop_off_zone, then=Stop.HOLD)
+      DropItem()
+   else:
+      ev3.speaker.say('No item found')
+
 def IsObjectInLocation(drop_off_zone):
    ResetRobot()
+
+   ev3.speaker.say('Checking for object in given location')
    
    # Turn to given angle
    turning_motor.run_target(clockwise_turning_speed, drop_off_zone, then=Stop.HOLD)
@@ -91,31 +108,18 @@ def IsObjectInLocation(drop_off_zone):
    claw_angle = claw_motor.angle()
 
    if claw_angle > holding_object_claw_angle:
-      ev3.speaker.say("There is an object in the location")
+      # Check color
+      item_color = color_sensor.color()
+      
+      # Message
+      ev3.speaker.say('There is a' + str(item_color).replace('Color.', '') + ' object in the location')
+      
       DropItem()
       
    else:
       ev3.speaker.say("I can't find an object in the given location, sorry")
-   
-def ReadColor():
-   ResetRobot()
-   wait(1000)
 
-   PickUpItem()
-   wait(1000)
-
-   # read color
-   arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
-   
-   current_color = str(color_sensor.color())
-   current_color = current_color.replace('Color.', '')
-
-   ev3.speaker.say('The color is ')
-   ev3.speaker.say(current_color)
-
-   DropItem()
-
-def DropOffDependentOnColor(seconds_delay_start, seconds_delay_between_attempts, total_attempts):
+def SortItems(seconds_delay_start, seconds_delay_between_attempts, total_attempts):
    ResetRobot()
    claw_angle = 0
    no_item_found_count = 0
@@ -173,5 +177,16 @@ def DropOffDependentOnColor(seconds_delay_start, seconds_delay_between_attempts,
 
          # Return to pick up location
          turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
-   
-DropOffDependentOnColor(5, 2, 2)
+
+
+# Drop at given location
+# US02b
+#DropItemAtLocation(second_drop_off)
+
+# Checking color and if object is in location
+# US01b, US03, US04b
+#IsObjectInLocation(pick_up)
+
+# Sorting and drop off
+# US05, US08b, US09, US10
+#SortItems(5, 2, 2)
