@@ -27,6 +27,8 @@ holding_object_claw_angle = 10
 
 # Heights
 read_color_height = -425
+pick_up_height = read_color_height -100
+arm_duty_limit = 20
 
 # Zones
 pick_up = -70
@@ -36,7 +38,7 @@ third_drop_off = second_drop_off -130
 
 ev3.speaker.beep()
 
-#
+# Bool functions
 def isPositiveInt(var):
    try:
       int(var)
@@ -54,7 +56,7 @@ def ResetRobot():
    arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=50)
    arm_motor.reset_angle(0)
    # Set arm height to color reading height
-   arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
+   arm_motor.run_target(raise_arm_speed, pick_up_height, then=Stop.HOLD)
 
    # Reset claw angle and set to open claw
    claw_motor.run_until_stalled(close_claw_speed, then=Stop.HOLD, duty_limit=50)
@@ -69,14 +71,21 @@ def ResetRobot():
    turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
 
 def PickUpItem():
-   arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=20)
+   arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=arm_duty_limit)
    claw_motor.run_until_stalled(close_claw_speed, then=Stop.HOLD, duty_limit=50)
-   arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
+   arm_motor.run_target(raise_arm_speed, pick_up_height, then=Stop.HOLD)
 
 def DropItem():
    arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=50)
    claw_motor.run_target(open_claw_speed, 90, then=Stop.HOLD)
+   arm_motor.run_target(raise_arm_speed, pick_up_height, then=Stop.HOLD)
+
+def ReadColor():
    arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
+   wait(500)
+   item_color = color_sensor.color()
+
+   return item_color
 
 # Inputs
 def ChooseDropOffPerColor(color):
@@ -106,7 +115,7 @@ def ChooseDropOffPerColor(color):
    
    return 0
    
-def ChooseTimeSeconds(message):
+def ChoosePositiveInt(message):
    choise = input(message)
 
    while not isPositiveInt(choise):
@@ -115,7 +124,19 @@ def ChooseTimeSeconds(message):
       choise = input(message)
    
    return int(choise)
+
+def ChooseElevated():
+   valid_choises = ['y', 'n']
+   message = ('Do you want to allow (y) elevated positions or not (n)?\n\n' +
+               'Your choise (y) or (n): ')
+
+   choise = input(message)
+
+   while choise not in valid_choises:
+      choise = input(message)
    
+   return choise
+
 # Test for configuring drop off locations
 def TestDropOff():
    ResetRobot()
@@ -172,10 +193,20 @@ def SortItems():
    ResetRobot()
    claw_angle = 0
    no_item_found_count = 0
+   global arm_duty_limit
 
-   seconds_delay_start = ChooseTimeSeconds('Enter the time (seconds) before the pick up process starts: ')
-   seconds_delay_between_attempts = ChooseTimeSeconds('Enter the delay (seconds) between failed attempts: ')
-   total_attempts = ChooseTimeSeconds('Enter the total number of attempts before the robot will shut down: ')
+   # User choise elevated heights
+   elevated_choise = ChooseElevated()
+
+   if elevated_choise == 'y':
+      arm_duty_limit = 7
+   elif elevated_choise == 'n':
+      arm_duty_limit = 20
+
+   # User choose time delays and total attempts
+   seconds_delay_start = ChoosePositiveInt('Enter the time (seconds) before the pick up process starts: ')
+   seconds_delay_between_attempts = ChoosePositiveInt('Enter the delay (seconds) between failed attempts: ')
+   total_attempts = ChoosePositiveInt('Enter the total number of attempts before the robot will shut down: ')
 
    # User choose drop off zones per color
    red_drop_off = ChooseDropOffPerColor('RED')
@@ -214,8 +245,8 @@ def SortItems():
 
       # Item found
       else:
-         item_color = color_sensor.color()
-         ev3.speaker.say(str(color_sensor.color()).replace('Color.', ''))
+         item_color = ReadColor()
+         ev3.speaker.say(str(item_color).replace('Color.', ''))
          
          # Turn dependent on color
          if item_color == Color.RED:
@@ -238,7 +269,5 @@ def SortItems():
          # Return to pick up location
          turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
 
-
-# US08b
+# US08b, US10, US06
 SortItems()
-
