@@ -7,12 +7,7 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
-
-# This program requires LEGO EV3 MicroPython v2.0 or higher.
-# Click "Open user guide" on the EV3 extension tab for more information.
-
-
-# Create your objects here.
+# EV3 Brick, motors, sensors
 ev3 = EV3Brick()
 turning_motor = Motor(Port.C)
 arm_motor = Motor(Port.B)
@@ -20,20 +15,24 @@ claw_motor = Motor(Port.A)
 color_sensor = ColorSensor(Port.S2)
 touch_sensor = TouchSensor(Port.S1)
 
+# Speeds
 close_claw_speed = -200
 open_claw_speed = 200
 raise_arm_speed = -200
 lower_arm_speed = 200
 clockwise_turning_speed = 200
 
+# Angles
 holding_object_claw_angle = 10
 
-pick_up = - 70
-read_color_height = -410
+# Heights
+read_color_height = -425
 
-first_drop_off = pick_up - 310
-second_drop_off = first_drop_off - 150
-third_drop_off = second_drop_off - 130
+# Zones
+pick_up = -70
+first_drop_off = pick_up -310
+second_drop_off = first_drop_off -150
+third_drop_off = second_drop_off -130
 
 ev3.speaker.beep()
 
@@ -67,6 +66,34 @@ def DropItem():
    claw_motor.run_target(open_claw_speed, 90, then=Stop.HOLD)
    arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
 
+# Inputs
+def ChooseDropOffPerColor(color):
+   drop_off_zone_message = ' drop off in zone'
+   valid_choices = ['1', '2', '3']
+   message = ('\nPick a drop off zone for the ' + color + ' piece.' + '\n\n' +
+               '(1) Drop Off Zone 1' + '\n' +
+               '(2) Drop Off Zone 2' + '\n' +
+               '(3) Drop Off Zone 3' + '\n\n' +
+               'Your choise: ')
+
+   choice = input(message)
+
+   while choice not in valid_choices:
+      print('\n !!! Please assign a valid input !!!')
+
+      choice = input(message)
+
+   ev3.speaker.say(color + drop_off_zone_message + choice)
+
+   if choice == '1':
+      return first_drop_off
+   elif choice == '2':
+      return second_drop_off
+   elif choice == '3':
+      return third_drop_off
+   
+   return 0
+   
 # Test for configuring drop off locations
 def TestDropOff():
    ResetRobot()
@@ -124,6 +151,11 @@ def SortItems(seconds_delay_start, seconds_delay_between_attempts, total_attempt
    claw_angle = 0
    no_item_found_count = 0
 
+   red_drop_off = ChooseDropOffPerColor('RED')
+   blue_drop_off = ChooseDropOffPerColor('BLUE')
+   yellow_drop_off = ChooseDropOffPerColor('YELLOW')
+   green_drop_off = ChooseDropOffPerColor('GREEN')
+
    if seconds_delay_start > 0:
       ev3.speaker.say('Starting pick up process in ' + str(seconds_delay_start) + 'seconds')
       wait(seconds_delay_start * 1000)
@@ -159,16 +191,16 @@ def SortItems(seconds_delay_start, seconds_delay_between_attempts, total_attempt
          
          # Turn dependent on color
          if item_color == Color.RED:
-            turning_motor.run_target(-200, first_drop_off, then=Stop.HOLD)
+            turning_motor.run_target(-200, red_drop_off, then=Stop.HOLD)
 
          elif item_color == Color.GREEN:
-            turning_motor.run_target(-200, second_drop_off, then=Stop.HOLD)
+            turning_motor.run_target(-200, green_drop_off, then=Stop.HOLD)
 
          elif item_color == Color.YELLOW:
-            turning_motor.run_target(-200, third_drop_off, then=Stop.HOLD)
+            turning_motor.run_target(-200, yellow_drop_off, then=Stop.HOLD)
 
          elif item_color == Color.BLUE:
-            turning_motor.run_target(-200, third_drop_off, then=Stop.HOLD)
+            turning_motor.run_target(-200, blue_drop_off, then=Stop.HOLD)
 
          else:
             ev3.speaker.say('Unknown Color')
@@ -179,14 +211,5 @@ def SortItems(seconds_delay_start, seconds_delay_between_attempts, total_attempt
          turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
 
 
-# Drop at given location
-# US02b
-#DropItemAtLocation(second_drop_off)
-
-# Checking color and if object is in location
-# US01b, US03, US04b
-#IsObjectInLocation(pick_up)
-
-# Sorting and drop off
-# US05, US08b, US09, US10
-#SortItems(5, 2, 2)
+# US08b
+# SortItems(5, 2, 2)
