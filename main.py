@@ -174,6 +174,7 @@ def IsObjectInLocation(drop_off_zone):
 
    # Try to pick up item
    PickUpItem()
+   arm_motor.run_target(raise_arm_speed, read_color_height, then=Stop.HOLD)
 
    claw_angle = claw_motor.angle()
 
@@ -199,7 +200,8 @@ def SortItems():
    elevated_choise = ChooseElevated()
 
    if elevated_choise == 'y':
-      arm_duty_limit = 7
+      arm_duty_limit = 5
+      ev3.speaker.say('Elevated pick up is allowed')
    elif elevated_choise == 'n':
       arm_duty_limit = 20
 
@@ -270,4 +272,4 @@ def SortItems():
          turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
 
 # US08b, US10, US06
-SortItems()
+#SortItems()
