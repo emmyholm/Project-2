@@ -76,7 +76,7 @@ def PickUpItem():
    arm_motor.run_target(raise_arm_speed, pick_up_height, then=Stop.HOLD)
 
 def DropItem():
-   arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=50)
+   arm_motor.run_until_stalled(lower_arm_speed, then=Stop.HOLD, duty_limit=arm_duty_limit)
    claw_motor.run_target(open_claw_speed, 90, then=Stop.HOLD)
    arm_motor.run_target(raise_arm_speed, pick_up_height, then=Stop.HOLD)
 
@@ -272,4 +272,4 @@ def SortItems():
          turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
 
 # US08b, US10, US06
-#SortItems()
+SortItems()
