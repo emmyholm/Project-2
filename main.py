@@ -36,6 +36,18 @@ third_drop_off = second_drop_off -130
 
 ev3.speaker.beep()
 
+#
+def isPositiveInt(var):
+   try:
+      int(var)
+   except:
+      return False
+
+   if int(var) >= 0:
+      return True
+   else:
+      return False
+
 # Set default angles
 def ResetRobot():
    # Reset arm angle
@@ -83,7 +95,7 @@ def ChooseDropOffPerColor(color):
 
       choice = input(message)
 
-   ev3.speaker.say(color + drop_off_zone_message + choice)
+   ev3.speaker.say(color.lower() + drop_off_zone_message + choice)
 
    if choice == '1':
       return first_drop_off
@@ -93,6 +105,16 @@ def ChooseDropOffPerColor(color):
       return third_drop_off
    
    return 0
+   
+def ChooseTimeSeconds(message):
+   choise = input(message)
+
+   while not isPositiveInt(choise):
+      print('\n!!! Please choose an integer !!! \n')
+
+      choise = input(message)
+   
+   return int(choise)
    
 # Test for configuring drop off locations
 def TestDropOff():
@@ -146,16 +168,22 @@ def IsObjectInLocation(drop_off_zone):
    else:
       ev3.speaker.say("I can't find an object in the given location, sorry")
 
-def SortItems(seconds_delay_start, seconds_delay_between_attempts, total_attempts):
+def SortItems():
    ResetRobot()
    claw_angle = 0
    no_item_found_count = 0
 
+   seconds_delay_start = ChooseTimeSeconds('Enter the time (seconds) before the pick up process starts: ')
+   seconds_delay_between_attempts = ChooseTimeSeconds('Enter the delay (seconds) between failed attempts: ')
+   total_attempts = ChooseTimeSeconds('Enter the total number of attempts before the robot will shut down: ')
+
+   # User choose drop off zones per color
    red_drop_off = ChooseDropOffPerColor('RED')
    blue_drop_off = ChooseDropOffPerColor('BLUE')
    yellow_drop_off = ChooseDropOffPerColor('YELLOW')
    green_drop_off = ChooseDropOffPerColor('GREEN')
 
+   # Speaker start wait message
    if seconds_delay_start > 0:
       ev3.speaker.say('Starting pick up process in ' + str(seconds_delay_start) + 'seconds')
       wait(seconds_delay_start * 1000)
@@ -212,4 +240,5 @@ def SortItems(seconds_delay_start, seconds_delay_between_attempts, total_attempt
 
 
 # US08b
-# SortItems(5, 2, 2)
+SortItems()
+
