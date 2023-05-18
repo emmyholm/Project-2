@@ -271,7 +271,5 @@ def SortItems():
          # Return to pick up location
          turning_motor.run_target(-200, pick_up, then=Stop.HOLD)
 
-# US08b, US10, US06
+# Call for desired function here
 SortItems()
-
-#TestDropOff()
