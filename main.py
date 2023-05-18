@@ -31,10 +31,10 @@ pick_up_height = read_color_height -100
 arm_duty_limit = 20
 
 # Zones
-pick_up = -70
+pick_up = -73
 first_drop_off = pick_up -310
 second_drop_off = first_drop_off -150
-third_drop_off = second_drop_off -130
+third_drop_off = second_drop_off -120
 
 ev3.speaker.beep()
 
@@ -273,3 +273,5 @@ def SortItems():
 
 # US08b, US10, US06
 SortItems()
+
+#TestDropOff()
